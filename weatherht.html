@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://ajax.aspnetcdn.com/ajax/jQuery/jquery-3.4.1.min.js" </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
+
+    <title>Weather Forecast</title>
+    
+    <style>
+        
+        .bgImage{
+            background: url(./weather-images/weather_bg.jpg);
+            background-size: cover;
+            border-radius: 0px;
+            height: 100vh;
+            margin-bottom: 0px;
+            
+            transition: background-image 1.5s ease-in-out;
+            background-repeat: no-repeat;
+        }
+        
+        .alert {
+            display: none;
+        }
+        
+        
+    </style>
+    
+    <script>
+        
+        $(function(){
+            
+            var interval=null;
+            
+            var allWeather =["broken-clouds",
+                             "clear-sky",
+                             "few-clouds",
+                             "heavy-intensity-rain",
+                             "moderate-rain",
+                             "overcast-clouds",
+                             "scattered-clouds",
+                             "light-rain"];
+            
+            function handleResult(){
+                
+                $(".alert").hide();
+                
+                if($("#city").val() !="") {
+                    
+                $.get("weather-scraper.php?city="+$("#city").val(),function(data){
+                       
+                    if(data == "" || data.includes("Warning")){
+
+                        $("#fail").fadeIn();
+
+                    }else{   
+                            $("#success").html(data).fadeIn();     
+                            let w1=data.split('Today\'s Weather: ')[1].split(',')[0];
+                            let w2=data.split('Tomorrow\'s Weather: ')[1].split(',')[0];
+
+                            w1=w1.replace(/ /g,"-");
+                            w2=w2.replace(/ /g,"-");
+                           
+                        
+                            if(allWeather.includes(w1) && allWeather.includes(w2)){
+                                
+                                let imgSrcs=[];
+                                imgSrcs.push(w1);
+                                imgSrcs.push(w2);
+                                
+                                clearInterval(interval);
+                                interval=null;
+                                
+                                if(interval==null){
+                                    interval=setInterval(function() {
+                                    console.log(imgSrcs);    
+                                    $(".bgImage").css("background-image", "url(./weather-images/" + imgSrcs[imgSrcs.push(imgSrcs.shift()) - 1] + ".png)");//infinite circle loop an array
+                                }, 2000);}
+                            }   
+                        }
+                }); 
+                }else{
+                    $("#empty").fadeIn();
+                }
+            }
+            
+            $("#findWeather").click( ev =>{
+                
+                ev.preventDefault();
+                handleResult();
+            });
+            
+            $('input').on('keypress', (ev)=> {
+                
+                if(ev.keyCode === 13){
+                    ev.preventDefault();
+                    handleResult();
+                }
+            });
+            
+    });
+        
+    </script>
+    
+  </head>
+  <body>
+   
+   <div class="jumbotron bgImage text-center">
+       
+       <div class="container">
+           
+           <h1 class="display-4 text-light mt-5">2 Day Weather Forcast</h1>
+           <p class="lead text-light">Please enter the <strong class="text-warning">city name</strong>  your want to find the weather for</p>
+           
+           <form>
+               <div class="form-group col-md-7 mx-auto">
+                   <input id="city" class="form-control" type="text" name="city" placeholder="eg: Beijing, London,CA, New York...">
+               </div>
+           </form>
+           
+           <button id="findWeather" type="submit" name="submit" class="btn btn-warning btn-lg">Search</button>
+           
+           <div class="col-8 mx-auto mt-3">
+               
+               <div id="success" class="alert alert-success">Result generated successfully :)</div>
+               <div id="fail" class="alert alert-danger">Could not find the city weather info you want, please make sure you have entered a valid city name :(</div>
+               <div id="empty" class="alert alert-danger">Please enter a city name!</div>
+               <div id="tip" class="text-light">* Upper or lower case letter does not matter; hit enter or click search button to get result<br>* Put a comma , after the city name and follows with a country abbr like "CA" to specify the city </div>
+               
+           </div>
+           
+       </div>
+       
+   </div> 
+
+  </body>
+</html>
